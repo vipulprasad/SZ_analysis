@@ -1,2 +1,2 @@
 # SZ_analysis
-Codes for tSZ analysis
+Codes for Sunyaev Zel'dovich spectrum analysis
