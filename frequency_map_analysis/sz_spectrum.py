@@ -1,4 +1,4 @@
-
+# Authors: Emanuale D'Angelo, Gemma Luzzi, Vipul Prasad Maranchery
 def sz_forecast(ysz, tkev, v_pec, tcmb, z, centerfreq, relcorr, nu_GHz, const, bandf, typ, temp = True):
     #Funzione equivalente al file sz_forecast_bis_filt_type_ysz_no70.pro, ma con un solo tipo di filtro
     #Function to evaluate the band integrated sz spectrum (currently only for Planck bands)
