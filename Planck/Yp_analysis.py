@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy import random
 from astropy.io import fits
-from astropy import units as u
-from astropy.cosmology import Planck18 as cosmo
 from math import sqrt
 import scipy.ndimage as ndimage
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -87,8 +85,6 @@ cluster_params = cluster_catalog[cluster_catalog.NAME == "PSZ2 G"+cluster_name.s
 cluster_nilc_stddev = hp.gnomview(planck_nilc_stddev, rot=[cluster_params.GLON, cluster_params.GLAT], xsize = grid_size, ysize = grid_size, return_projected_map=True, no_plot=True).data
 cluster_nilc_map = hp.gnomview(planck_nilc_ymap, rot=[cluster_params.GLON, cluster_params.GLAT], xsize = grid_size, ysize = grid_size, return_projected_map=True, no_plot=True).data
 
-#cluster_nilc_map = np.loadtxt("/home/vipul/sz_analysis/Planck/stacked_map/stacked_nilc_map_planck.txt")
-#cluster_nilc_stddev = np.loadtxt("/home/vipul/sz_analysis/Planck/stacked_map/stacked_nilc_stddev_map_planck.txt")
 
 show_image_line([cluster_nilc_map, cluster_nilc_stddev], labels = ["NILC Map", "NILC std dev Map"],  figtitle = "psz2g263.68-22.55", output = plots_output_root+"NILC_map.png")
 
