@@ -1,6 +1,9 @@
 # Authors: Emanuale D'Angelo, Gemma Luzzi, Vipul Prasad Maranchery
 # This programs contain functions to calculate the Sunyaev Zel'dovich spectral distortion 
 # and second order correction to SZ spectrum from Fabbri et al.
+c=2.99792e10
+step_ni=0.01
+
 def sz_forecast(ysz, tkev, v_pec, tcmb, z, centerfreq, relcorr, nu_GHz, const, bandf, typ, temp = True):
     #Funzione equivalente al file sz_forecast_bis_filt_type_ysz_no70.pro, ma con un solo tipo di filtro
     #Function to evaluate the band integrated sz spectrum (currently only for Planck bands)
@@ -29,8 +32,9 @@ def sz_forecast(ysz, tkev, v_pec, tcmb, z, centerfreq, relcorr, nu_GHz, const, b
     else:
         # Output in MJy/sr
         for i in range(len(centerfreq)):
-            sz_spec_band_int[i] = (sz_spec*filter[:,i]).sum()/filter[:,i].sum()
-            # *freq_step
+            # sz_spec_band_int[i] = (sz_spec*filter[:,i]).sum()/filter[:,i].sum()
+            # sz_spec_band_int[i] = (sz_spec*filter[:,i]).sum()*step_ni*c*(1+z)
+            sz_spec_band_int[i] = (sz_spec*filter[:,i]).sum()*freq_step*(1+z)/(cn)
         return sz_spec_band_int
  
 
@@ -146,7 +150,7 @@ def rel_corr_batch_init(tcmb,freq_GHz, const):
     return relcorr
 
 
-def rel_corr_sec_ord_ysz(ysz, yp, tcmb, tkev, freq_GHz=None, temp=True, const=None, secordcorr=None):
+def rel_corr_sec_ord_ysz(ysz, yp, tcmb, tkev, freq_GHz=None, const=None, secordcorr=None, temp=True):
 
     theta = tkev/const["me"]
 
@@ -208,7 +212,7 @@ def rel_corr_sec_ord_init(tcmb,freq_GHz,const):
 
     aidx = x**(3.)/(exp(x)-1.)                  #  BB without constants
     chx = cosh(x/2.)
-    shx = np.sinh(x/2.)
+    shx = sinh(x/2.)
     xtil = x*(chx/shx)
     s = x/shx
 
@@ -228,16 +232,28 @@ def rel_corr_sec_ord_init(tcmb,freq_GHz,const):
 
     return secordcorr
 
-def rel_corr_sec_ord_ysz_bndint(ysz, yp, tcmb, tkev, band_centerfreq, freq_GHz=None, temp=True, const=None, secordcorr=None):
+def rel_corr_sec_ord_ysz_bndint(ysz, yp, tcmb, tkev, z, band_centerfreq, freq_GHz=None, temp=True, const=None, secordcorr=None):
     from scipy.io import readsav
-    spectrum = rel_corr_sec_ord_ysz(ysz, yp, tcmb, tkev, freq_GHz, temp, const, secordcorr)
+    from numpy import zeros
+    spectrum = rel_corr_sec_ord_ysz(ysz, yp, tcmb, tkev, freq_GHz, const, secordcorr, temp = temp)
+    c=2.99792e10
+    cn=c*1e-9
+    freq_step = (freq_GHz[1]-freq_GHz[0])#*(1+z) #*1e9
 
-    tsz_corrctn_band_int = np.zeros(len(band_centerfreq))
+
+    tsz_corrctn_band_int = zeros(len(band_centerfreq))
     pl_band=readsav("./pl_bandpass_2013.sav", python_dict=True)
     filt_planck=pl_band['filter_planck'][:,0:len(tsz_corrctn_band_int)]
     #filt=np.exp(-(nu_GHz-centerfreq[i])**2/2./(bw[i]/2.35)**2.)
 
-    for i in range(len(band_centerfreq)):
-        tsz_corrctn_band_int[i]=(spectrum*filt_planck[:,i]).sum()/filt_planck[:,i].sum()
+    if temp:
+        for i in range(len(band_centerfreq)):
+            tsz_corrctn_band_int[i]=(spectrum*filt_planck[:,i]).sum()/filt_planck[:,i].sum()
+    else:
+        for i in range(len(band_centerfreq)):
+            # tsz_corrctn_band_int[i]=(spectrum*filt_planck[:,i]).sum()*step_ni*c*(1+z)
+            tsz_corrctn_band_int[i]=(spectrum*filt_planck[:,i]).sum()*freq_step*(1+z)/cn
+ 
+
 
     return tsz_corrctn_band_int
