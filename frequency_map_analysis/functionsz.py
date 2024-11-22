@@ -4,7 +4,7 @@
 c=2.99792e10
 step_ni=0.01
 
-def sz_forecast(ysz, tkev, v_pec, tcmb, z, centerfreq, relcorr, nu_GHz, const, bandf, typ, temp = True):
+def sz_forecast(ysz, tkev, v_pec, tcmb, z, centerfreq, relcorr, nu_GHz, const, bandf, typ, temp):
     #Funzione equivalente al file sz_forecast_bis_filt_type_ysz_no70.pro, ma con un solo tipo di filtro
     #Function to evaluate the band integrated sz spectrum (currently only for Planck bands)
     from numpy import zeros, exp
@@ -15,30 +15,31 @@ def sz_forecast(ysz, tkev, v_pec, tcmb, z, centerfreq, relcorr, nu_GHz, const, b
     c=2.99792e10
     cn=c*1e-9
     hc=h*c
-    freq_step = (nu_GHz[1]-nu_GHz[0])#*(1+z) #*1e9
+    step_ni = (nu_GHz[1]-nu_GHz[0])/cn#*(1+z) #*1e9
 
-    sz_spec = rel_corr_batch_bis(ysz, tkev, v_pec, tcmb, nu_GHz*(1+z), const, relcorr, typ, temp = temp)
+    # sz_spec = rel_corr_batch_bis(ysz, tkev, v_pec, tcmb, nu_GHz*(1+z), const, relcorr, typ, temp = temp)
     sz_spec_band_int = zeros(len(centerfreq))
 
     bands = readsav(bandf, python_dict=True) # bandf = "./pl_bandpass_2013.sav" 
     filter = bands['filter_planck'][:,0:len(sz_spec_band_int)]
     #filter = np.exp(-(nu_GHz-centerfreq[i])**2/2./(bw[i]/2.35)**2.)
+    sz_spec = rel_corr_batch_bis(ysz, tkev, v_pec, tcmb, nu_GHz*(1+z), const, relcorr, typ, temp = temp)
 
     if temp:
+        # sz_spec = rel_corr_batch_bis(ysz, tkev, v_pec, tcmb, nu_GHz*(1+z), const, relcorr, typ, temp = True)
         # Output in millikelvin
         for i in range(len(centerfreq)):
             sz_spec_band_int[i] = (sz_spec*filter[:,i]).sum()/filter[:,i].sum()
-        return sz_spec_band_int
     else:
+        # sz_spec = rel_corr_batch_bis(ysz, tkev, v_pec, tcmb, nu_GHz*(1+z), const, relcorr, typ, temp = False)
         # Output in MJy/sr
         for i in range(len(centerfreq)):
-            # sz_spec_band_int[i] = (sz_spec*filter[:,i]).sum()/filter[:,i].sum()
-            # sz_spec_band_int[i] = (sz_spec*filter[:,i]).sum()*step_ni*c*(1+z)
-            sz_spec_band_int[i] = (sz_spec*filter[:,i]).sum()*freq_step*(1+z)/(cn)
-        return sz_spec_band_int
+            # sz_spec_band_int[i] = (sz_spec*filter[:,i]).sum()*step_ni*c*(1.+z)
+            sz_spec_band_int[i] = (sz_spec*filter[:,i]).sum()/filter[:,i].sum()
+    return sz_spec_band_int
  
 
-def rel_corr_batch_bis(ysz, tkev, v_pec, tcmb, freq_Ghz, const, relcorr, typ, temp = True):
+def rel_corr_batch_bis(ysz, tkev, v_pec, tcmb, freq_Ghz, const, relcorr, typ, temp):
     #Funzione equivalente al file rel_corr_batch_kincorr_bis_ysz.pro
     # Functio to evaluate the sz spectrum
     theta=tkev/const['me']
@@ -76,7 +77,7 @@ def rel_corr_batch_bis(ysz, tkev, v_pec, tcmb, freq_Ghz, const, relcorr, typ, te
         return dt_sz
     else: 
         # output in intensity MJy/sr
-        di_sz = ysz*g_rel*1e24*2*(const['kb']*const['t0'])**3/(const['hc']**2) # MJy/sr
+        di_sz = ysz*g_rel*2*(const['kb']*const['t0'])**3/(const['hc']**2) # not MJy/sr
         return di_sz
 
 def rel_corr_batch_init(tcmb,freq_GHz, const):
@@ -251,8 +252,8 @@ def rel_corr_sec_ord_ysz_bndint(ysz, yp, tcmb, tkev, z, band_centerfreq, freq_GH
             tsz_corrctn_band_int[i]=(spectrum*filt_planck[:,i]).sum()/filt_planck[:,i].sum()
     else:
         for i in range(len(band_centerfreq)):
-            # tsz_corrctn_band_int[i]=(spectrum*filt_planck[:,i]).sum()*step_ni*c*(1+z)
-            tsz_corrctn_band_int[i]=(spectrum*filt_planck[:,i]).sum()*freq_step*(1+z)/cn
+            tsz_corrctn_band_int[i]=(spectrum*filt_planck[:,i]).sum()*step_ni*c*(1+z)
+            # tsz_corrctn_band_int[i]=(spectrum*filt_planck[:,i]).sum()*freq_step*(1+z)/cn
  
 
 
